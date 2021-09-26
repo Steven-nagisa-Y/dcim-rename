@@ -5,6 +5,9 @@ from sys import exit
 from tinydb import TinyDB, Query
 
 
+DB_NAME = ''
+
+
 def quit(errMsg=None):
     from time import sleep
     for i in range(1, 4):
@@ -19,19 +22,22 @@ def quit(errMsg=None):
         exit(0)
 
 
-def get_db(db_name='./photo_db.json'):
+def get_db(db_name):
+    if not db_name:
+        db_name = 'photo_db'
+    db_name = f"./{db_name}.json"
     if not os.path.exists(db_name):
-        quit(f"Do not found DB File {db_name}\n Run Check first.")
+        quit(f"Do not found DB File {db_name} Run Check.py first.")
     else:
         db = TinyDB(db_name)
         return db
 
 
-def display_good(db):
+def display_all(db):
     paths = [i['path'] for i in db]
     paths = list(set(paths))
     for path in paths:
-        print(f"-+ {path}")
+        print(f"\n-+ {path}")
         for item in db:
             if item['path'] == path:
                 print(f" |-+ {item['new']}  <-  {item['original']}")
@@ -41,7 +47,7 @@ def display_error(db, q):
     paths = [i['path'] for i in db.search(q == 'ERROR')]
     paths = list(set(paths))
     for path in paths:
-        print(f"-+ {path}")
+        print(f"\n-+ {path}")
         for item in db.search(q == 'ERROR'):
             if item['path'] == path:
                 print(f" |-+ {item['new']}")
@@ -51,7 +57,7 @@ def display_good(db, q):
     paths = [i['path'] for i in db.search(q == 'GOOD')]
     paths = list(set(paths))
     for path in paths:
-        print(f"-+ {path}")
+        print(f"\n-+ {path}")
         for item in db.search(q == 'GOOD'):
             if item['path'] == path:
                 print(f" |-+ {item['new']}  <-  {item['original']}")
@@ -79,13 +85,20 @@ def rename(db, q, i=0):
                     quit(f"{path + item['original']} access denied: {err}")
                 except IOError:
                     quit(f"IO Error.")
-                print("     [Ok] 改名成功")
+                print("     [ OK ] 改名成功")
 
 
 def main():
-    db = get_db()
-    DCIM = Query()
+    global DB_NAME
     print("===========================================================")
+    if not DB_NAME:
+        print("输入数据库文件名")
+        try:
+            DB_NAME = input('(Default) photo_db > ')
+        except KeyboardInterrupt:
+            quit("Input Database name error")
+    db = get_db(DB_NAME)
+    DCIM = Query()
     print("功能选择：")
     print("1 => 查看所有数据")
     print("2 => 查看失败的数据")
@@ -102,7 +115,7 @@ def main():
     if select == 0:
         quit()
     if select == 1:
-        display_good(db, DCIM.status)
+        display_all(db)
         main()
     if select == 2:
         display_error(db, DCIM.status)
