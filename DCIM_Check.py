@@ -2,7 +2,6 @@
 
 import os
 import re
-from sre_constants import NOT_LITERAL
 from sys import exit
 from tinydb import TinyDB, Query
 import exifread
@@ -137,9 +136,10 @@ def main():
                 match_vid = re.match(vid_pattern, file)
                 if match_img:
                     good_img_pattern = r'((IMG|PANO)_\d{8}_\d{6}(_HDR)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
-                    next1_img_pattern = r'16\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
+                    next1_img_pattern = r'1(3|4|5|6)\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                     next2_img_pattern = r'IMG_\d{8}_\d{6}.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                     next3_img_pattern = r'IMG\d{14}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
+                    next4_img_pattern = r'mmexport1(3|4|5|6)\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                     if re.match(good_img_pattern, file):
                         print(f"[GOOD] {file}")
                         count['good'] += 1
@@ -152,11 +152,19 @@ def main():
                     elif re.match(next3_img_pattern, file):
                         do_rename(dirpath, file, db, 10)
                         count['dismatch'] += 1
+                    elif re.match(next4_img_pattern, file):
+                        do_rename(dirpath, str(file)[8:], db, 1)
+                        count['dismatch'] += 1
                     else:
                         count['dismatch'] += 1
-                        f = open(dirpath + os.path.sep + file, 'rb')
-                        exif_tags = exifread.process_file(f)
-                        f.close()
+                        try:
+                            f = open(dirpath + os.path.sep + file, 'rb')
+                            exif_tags = exifread.process_file(f)
+                            f.close()
+                        except PermissionError:
+                            return "File access denied."
+                        except IOError:
+                            return "IO Error."
                         if exif_tags == None or exif_tags == {} or not exif_tags.__contains__('EXIF DateTimeOriginal'):
                             msg = f'\n[ERROR] File does not has EXIF: {file}\n'
                             do_rename(dirpath, file, db, -1, msg=msg)
@@ -190,10 +198,11 @@ def main():
                         do_rename(dirpath, file, db, -1, msg=msg)
                         print(msg)
                 else:
+                    # 不是图片视频
                     msg = f'\n[ERROR] File does not match: {file}\n'
-                    count['dismatch'] += 1
                     print(msg)
-                    return f"Unkown File {file}"
+                    count['all'] -= 1
+                    continue
         print("\n[INFO] Result:")
         print(count)
         return "ok"
@@ -204,6 +213,15 @@ def main():
 if __name__ == '__main__':
     ok = main()
     if ok == 'ok':
-        quit()
+        try:
+            print("Checked! What to do next?\ny  => Rename them\nq  => Quit.")
+            todo = input("> ")
+        except KeyboardInterrupt:
+            quit()
+        if todo.lower() == 'y':
+            import DCIM_Rename
+            DCIM_Rename.main()
+        else:
+            quit()
     else:
         quit(ok)

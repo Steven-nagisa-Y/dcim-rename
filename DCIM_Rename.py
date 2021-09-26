@@ -1,13 +1,12 @@
 # coding=utf-8
 
 import os
-from time import sleep
 from tinydb import TinyDB, Query
 
 
 def quit(errMsg=None):
     from time import sleep
-    for i in range(1,4):
+    for i in range(1, 4):
         sleep(0.3 * i)
         print(' ' * i + '-> ' + str(i))
     if not errMsg == None:
@@ -55,7 +54,32 @@ def display_good(db, q):
         for item in db.search(q == 'GOOD'):
             if item['path'] == path:
                 print(f" |-+ {item['new']}  <-  {item['original']}")
-                    
+
+
+def rename(db, q, i=0):
+    rename_list = db.search(q == 'GOOD')
+    paths = [i['path'] for i in rename_list]
+    paths = list(set(paths))
+    for path in paths:
+        print(f"-+ {path}")
+        for item in rename_list:
+            if item['path'] == path:
+                print(f" |-+ Rename to {item['new']}  <-  {item['original']}")
+                try:
+                    if i == 0:
+                        os.rename(
+                            path + os.path.sep + item['original'], path + os.path.sep + item['new'])
+                    else:
+                        os.rename(
+                            path + os.path.sep + item['new'], path + os.path.sep + item['original'])
+                except KeyboardInterrupt:
+                    quit("User type to quit")
+                except PermissionError as err:
+                    quit(f"{path + item['original']} access denied: {err}")
+                except IOError:
+                    quit(f"IO Error.")
+                print("     [Ok] 改名成功")
+
 
 def main():
     db = get_db()
@@ -75,13 +99,19 @@ def main():
     if select == 0:
         quit()
     if select == 1:
-        display_good(db)
+        display_good(db, DCIM.status)
         main()
     if select == 2:
         display_error(db, DCIM.status)
         main()
     if select == 3:
         display_good(db, DCIM.status)
+        main()
+    if select == 4:
+        rename(db, DCIM.status)
+        main()
+    if select == 9:
+        rename(db, DCIM.status, 1)
         main()
 
 
