@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+from sys import exit
 from tinydb import TinyDB, Query
 
 
@@ -43,7 +44,7 @@ def display_error(db, q):
         print(f"-+ {path}")
         for item in db.search(q == 'ERROR'):
             if item['path'] == path:
-                print(f" |-+ {item['new']}  <-  {item['original']}")
+                print(f" |-+ {item['new']}")
 
 
 def display_good(db, q):
@@ -96,6 +97,8 @@ def main():
         select = int(input("> "))
     except KeyboardInterrupt:
         quit()
+    except ValueError as err:
+        quit(f"Input value error: {err}")
     if select == 0:
         quit()
     if select == 1:

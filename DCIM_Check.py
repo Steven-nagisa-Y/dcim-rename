@@ -10,15 +10,13 @@ import exifread
 def select_path():
     print("===========================================================")
     print("请输入需要处理的目录，例如：/DCIM/Camera ")
-    print("输入 img 处理当前目录下 img ")
+    print("输入 DCIM 处理当前目录下 img ")
     try:
         src = input("> ")
     except KeyboardInterrupt:
         quit("User type exit")
-    if src == 'img':
-        _path = os.getcwd() + os.path.sep + 'img'
-    elif src == 't':
-        _path = '/Volumes/NAS/_My/Phone/DCIM/'
+    if src.lower() == 'dcim':
+        _path = os.getcwd() + os.path.sep + 'DCIM'
     else:
         _path = src
     if not os.path.exists(_path):
@@ -64,6 +62,24 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         from time import localtime, strftime
         Photo = Query()
         time_stamp = int(file_name)
+        # 尝试60次重命名
+        for _ in range(60):
+            time_local = localtime(time_stamp/1000)
+            file_name_formatted = strftime("%Y%m%d_%H%M%S", time_local)
+            new_name = "IMG_" + file_name_formatted + "." + file_ext
+            db_value = db_get(db, Photo.new, new_name)
+            if db_value:
+                time_stamp += 1000
+            else:
+                break
+        ori_name = file
+        db_set(db, dirname, ori_name, new_name)
+        return "ok"
+    if i == 2:
+        # 修改傻逼微信保存的图片文件名
+        from time import localtime, strftime
+        Photo = Query()
+        time_stamp = int(file_name[8:])
         # 尝试60次重命名
         for _ in range(60):
             time_local = localtime(time_stamp/1000)
@@ -144,16 +160,20 @@ def main():
                         print(f"[GOOD] {file}")
                         count['good'] += 1
                     elif re.match(next1_img_pattern, file):
+                        print(f"[INFO] Match timestamp {file}")
                         do_rename(dirpath, file, db, 1)
                         count['dismatch'] += 1
                     elif re.match(next2_img_pattern, file):
+                        print(f"[INFO] Match extra text {file}")
                         do_rename(dirpath, file, db, 11)
                         count['dismatch'] += 1
                     elif re.match(next3_img_pattern, file):
+                        print(f"[INFO] Match missing underline {file}")
                         do_rename(dirpath, file, db, 10)
                         count['dismatch'] += 1
                     elif re.match(next4_img_pattern, file):
-                        do_rename(dirpath, str(file)[8:], db, 1)
+                        print(f"[INFO] Match WX timestamp {file}")
+                        do_rename(dirpath, file, db, 2)
                         count['dismatch'] += 1
                     else:
                         count['dismatch'] += 1
@@ -174,7 +194,7 @@ def main():
                                 exif_tags['EXIF DateTimeOriginal']) or None
                             if exif:
                                 print(
-                                    f"[INFO] File {file} Time {exif_tags['EXIF DateTimeOriginal']}")
+                                    f"[INFO] Match EXIF Time {file} {exif_tags['EXIF DateTimeOriginal']}")
                                 do_rename(dirpath, file, db, 0, exif)
                             else:
                                 msg = f'\n[ERROR] File does not has Time: {file}\n'
@@ -185,11 +205,14 @@ def main():
                     next1_vid_pattern = r'VID\d{14}\.(mp4|MP4|mov|MOV)'
                     next2_vid_pattern = r'VID_\d{8}_\d{6}_\d+\.(mp4|MP4|mov|MOV)'
                     if re.match(good_vid_pattern, file):
+                        print(f"[GOOD] {file}")
                         count['video'] += 1
                     elif re.match(next1_vid_pattern, file):
+                        print(f"[INFO] Match timestamp {file}")
                         do_rename(dirpath, file, db, 10)
                         count['dismatch'] += 1
                     elif re.match(next2_vid_pattern, file):
+                        print(f"[INFO] Match extra text {file}")
                         do_rename(dirpath, file, db, 11)
                         count['dismatch'] += 1
                     else:
