@@ -99,6 +99,20 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         ori_name = file
         db_set(db, dirname, ori_name, new_name)
         return "ok"
+    if i == 3:
+        # 没有标识头，添加标识头
+        ori_name = file
+        new_name = 'IMG_' + ori_name
+        db_set(db, dirname, ori_name, new_name)
+        return "ok"
+    if i == 4:
+        from time import strptime, strftime
+        file_time = strptime(file_name, "%Y-%m-%d %H.%M.%S")
+        file_name = strftime("%Y%m%d_%H%M%S", file_time)
+        ori_name = file
+        new_name = "IMG_" + file_name + "." + file_ext
+        db_set(db, dirname, ori_name, new_name)
+        return "ok"
     if i == 10:
         # 直接重新格式化文件名
         ori_name = file
@@ -168,6 +182,8 @@ def main():
                 next2_img_pattern = r'IMG_\d{8}_\d{6}.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next3_img_pattern = r'IMG\d{14}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next4_img_pattern = r'(mmexport|microMsg\.)1[3-6]\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
+                next5_img_pattern = r'\d{8}_\d{6}(_HDR)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
+                next6_img_pattern = r'\d{4}-\d{2}-\d{2}\s\d{2}\.\d{2}\.\d{2}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 if re.match(good_img_pattern, file):
                     print(f"[ OK ] {file}")
                     count['good'] += 1
@@ -186,6 +202,14 @@ def main():
                 elif re.match(next4_img_pattern, file):
                     print(f"[INFO] Match WX timestamp {file}")
                     do_rename(dirpath, file, db, 2)
+                    count['dismatch'] += 1
+                elif re.match(next5_img_pattern, file):
+                    print(f"[INFO] Match Head missing {file}")
+                    do_rename(dirpath, file, db, 3)
+                    count['dismatch'] += 1
+                elif re.match(next6_img_pattern, file):
+                    print(f"[INFO] Match New Format {file}")
+                    do_rename(dirpath, file, db, 4)
                     count['dismatch'] += 1
                 else:
                     count['dismatch'] += 1
