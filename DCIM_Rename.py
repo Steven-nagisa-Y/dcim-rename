@@ -8,7 +8,7 @@ from tinydb import TinyDB, Query
 def quit(errMsg=None):
     from time import sleep
     for i in range(1,4):
-        sleep(0.5 * i)
+        sleep(0.3 * i)
         print(' ' * i + '-> ' + str(i))
     if not errMsg == None:
         print(
@@ -34,8 +34,7 @@ def display_good(db):
         print(f"-+ {path}")
         for item in db:
             if item['path'] == path:
-                print(f" |-+ {item['original']}")
-                print(f"   |>{item['new']}")
+                print(f" |-+ {item['new']}  <-  {item['original']}")
 
 
 def display_error(db, q):
@@ -45,8 +44,7 @@ def display_error(db, q):
         print(f"-+ {path}")
         for item in db.search(q == 'ERROR'):
             if item['path'] == path:
-                print(f" |-+ {item['original']}")
-                print(f"   |>{item['new']}")
+                print(f" |-+ {item['new']}  <-  {item['original']}")
 
 
 def display_good(db, q):
@@ -56,8 +54,7 @@ def display_good(db, q):
         print(f"-+ {path}")
         for item in db.search(q == 'GOOD'):
             if item['path'] == path:
-                print(f" |-+ {item['original']}")
-                print(f"   |>{item['new']}")
+                print(f" |-+ {item['new']}  <-  {item['original']}")
                     
 
 def main():

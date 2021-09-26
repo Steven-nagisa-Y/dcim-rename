@@ -50,6 +50,7 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
     match_name = re.match(r'^(?P<name>[\S\s]+)\.(?P<ext>\S+)$', file)
     file_name = match_name.groupdict()['name']
     file_ext = match_name.groupdict()['ext']
+    file_ext = file_ext.lower()
     if i == 0:
         # 通过EXIF更改图片文件名
         from time import strptime, strftime
@@ -106,7 +107,7 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
 def quit(errMsg=None):
     from time import sleep
     for i in range(1,4):
-        sleep(0.5 * i)
+        sleep(0.3 * i)
         print(' ' * i + '-> ' + str(i))
     if not errMsg == None:
         print(
@@ -144,13 +145,13 @@ def main():
                         count['good'] += 1
                     elif re.match(next1_img_pattern, file):
                         do_rename(dirpath, file, db, 1)
-                        count['good'] += 1
+                        count['dismatch'] += 1
                     elif re.match(next2_img_pattern, file):
                         do_rename(dirpath, file, db, 11)
-                        count['good'] += 1
+                        count['dismatch'] += 1
                     elif re.match(next3_img_pattern, file):
                         do_rename(dirpath, file, db, 10)
-                        count['good'] += 1
+                        count['dismatch'] += 1
                     else:
                         count['dismatch'] += 1
                         f = open(dirpath + os.path.sep + file, 'rb')
@@ -167,8 +168,6 @@ def main():
                                 print(
                                     f"[INFO] File {file} Time {exif_tags['EXIF DateTimeOriginal']}")
                                 do_rename(dirpath, file, db, 0, exif)
-                                count['dismatch'] -= 1
-                                count['good'] += 1
                             else:
                                 msg = f'\n[ERROR] File does not has Time: {file}\n'
                                 do_rename(dirpath, file, db, -1, msg=msg)
@@ -181,10 +180,10 @@ def main():
                         count['video'] += 1
                     elif re.match(next1_vid_pattern, file):
                         do_rename(dirpath, file, db, 10)
-                        count['video'] += 1
+                        count['dismatch'] += 1
                     elif re.match(next2_vid_pattern, file):
                         do_rename(dirpath, file, db, 11)
-                        count['video'] += 1
+                        count['dismatch'] += 1
                     else:
                         msg = f'\n[ERROR] Video does not match: {file}\n'
                         count['dismatch'] += 1
