@@ -7,6 +7,9 @@ from tinydb import TinyDB, Query
 import exifread
 
 
+DB_NAME = ''
+
+
 def select_path():
     print("===========================================================")
     print("请输入需要处理的目录，例如：/DCIM/Camera ")
@@ -25,9 +28,11 @@ def select_path():
     return _path
 
 
-def create_db(db_name):
+def create_db(db_name=None):
     if not db_name:
         db_name = 'photo_db'
+    global DB_NAME
+    DB_NAME = db_name
     db_name = f"./{db_name}.json"
     if os.path.exists(db_name):
         os.remove(db_name)
@@ -162,6 +167,8 @@ def main():
         db_name = input('(Default) photo_db > ')
     except KeyboardInterrupt:
         return "Input Database name error"
+    except ValueError:
+        return "Input Database value error"
     db = create_db(db_name)
     count = {
         'all': 0,
@@ -169,15 +176,15 @@ def main():
         'dismatch': 0,
         'video': 0
     }
-    img_pattern = r'.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
-    vid_pattern = r'.+\.(mp4|MP4|mov|MOV)'
+    img_pattern = r'.+\.(jpg|jpeg|heic|png)'
+    vid_pattern = r'.+\.(mp4|mov|3gp)'
     for dirpath, _, files in os.walk(path):
         for file in files:
             count['all'] += 1
-            match_img = re.match(img_pattern, file)
-            match_vid = re.match(vid_pattern, file)
+            match_img = re.match(img_pattern, file, re.I)
+            match_vid = re.match(vid_pattern, file, re.I)
             if match_img:
-                good_img_pattern = r'((IMG|PANO|Screenshot)_\d{8}_\d{6}(_HDR)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
+                good_img_pattern = r'((IMG|PANO|Screenshot)_\d{8}_\d{6}(_HDR)?(_\w+\.\w+\..+)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
                 next1_img_pattern = r'1(3|4|5|6)\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next2_img_pattern = r'IMG_\d{8}_\d{6}.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next3_img_pattern = r'IMG\d{14}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
@@ -239,7 +246,7 @@ def main():
                             do_rename(dirpath, file, db, -1, msg=msg)
                             print(msg)
             elif match_vid:
-                good_vid_pattern = r'VID_\d{8}_\d{6}\.(mp4|MP4|mov|MOV)'
+                good_vid_pattern = r'VID_\d{8}_\d{6}\.(mp4|MP4|mov|MOV|3gp)'
                 next1_vid_pattern = r'VID\d{14}\.(mp4|MP4|mov|MOV)'
                 next2_vid_pattern = r'VID_\d{8}_\d{6}_\d+\.(mp4|MP4|mov|MOV)'
                 next3_vid_pattern = r'(mmexport|microMsg\.)1[3-6]\d{11}\.(mp4|MP4|mov|MOV)'
@@ -284,7 +291,7 @@ if __name__ == '__main__':
             quit()
         if todo.lower() == 'y':
             import Rename
-            Rename.main()
+            Rename.main(DB_NAME)
         else:
             quit()
     else:

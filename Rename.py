@@ -2,6 +2,7 @@
 
 import os
 from sys import exit
+from time import sleep
 from tinydb import TinyDB, Query
 
 
@@ -9,7 +10,6 @@ DB_NAME = ''
 
 
 def quit(errMsg=None):
-    from time import sleep
     for i in range(1, 4):
         sleep(0.3 * i)
         print(' ' * i + '-> ' + str(i))
@@ -68,29 +68,36 @@ def rename(db, q, i=0):
     paths = [i['path'] for i in rename_list]
     paths = list(set(paths))
     for path in paths:
-        print(f"-+ {path}")
+        print(f"\n-+ {path}")
         for item in rename_list:
             if item['path'] == path:
-                print(f" |-+ Rename to {item['new']}  <-  {item['original']}")
                 try:
                     if i == 0:
+                        print(f" |-+ Rename to {item['new']}  <-  {item['original']}")
                         os.rename(
                             path + os.path.sep + item['original'], path + os.path.sep + item['new'])
                     else:
+                        print(f" |-+ Rename to {item['original']}  <-  {item['new']}")
                         os.rename(
                             path + os.path.sep + item['new'], path + os.path.sep + item['original'])
                 except KeyboardInterrupt:
                     quit("User type to quit")
                 except PermissionError as err:
-                    quit(f"{path + item['original']} access denied: {err}")
-                except IOError:
-                    quit(f"IO Error.")
+                    print(f"     [ERROR] {path + item['original']} Access denied: {err}")
+                    sleep(1)
+                    continue
+                except IOError as err:
+                    print(f"     [ERROR] {path + item['original']} IO error: {err}")
+                    sleep(1)
+                    continue
                 print("     [ OK ] 改名成功")
 
 
-def main():
+def main(db_name=None):
     global DB_NAME
     print("===========================================================")
+    if db_name:
+        DB_NAME = db_name
     if not DB_NAME:
         print("输入数据库文件名")
         try:
