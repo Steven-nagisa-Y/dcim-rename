@@ -133,7 +133,12 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         new_name = file_name + "." + file_ext
         db_set(db, dirname, ori_name, new_name)
         return "ok"
-
+    if i == 12:
+        # 没有标识头，添加标识头
+        ori_name = file
+        new_name = 'VID_' + ori_name[6:]
+        db_set(db, dirname, ori_name, new_name)
+        return "ok"
     if i == -1:
         if msg:
             # 无法自动重命名
@@ -250,6 +255,7 @@ def main():
                 next1_vid_pattern = r'VID\d{14}\.(mp4|MP4|mov|MOV)'
                 next2_vid_pattern = r'VID_\d{8}_\d{6}_\d+\.(mp4|MP4|mov|MOV)'
                 next3_vid_pattern = r'(mmexport|microMsg\.)1[3-6]\d{11}\.(mp4|MP4|mov|MOV)'
+                next4_vid_pattern = r'video_\d{8}_\d{6}\.(mp4|MP4|mov|MOV|3gp)'
                 if re.match(good_vid_pattern, file):
                     print(f"[ OK ] {file}")
                     count['video'] += 1
@@ -264,6 +270,10 @@ def main():
                 elif re.match(next3_vid_pattern, file):
                     print(f"[INFO] Match WX timestamp {file}")
                     do_rename(dirpath, file, db, 2)
+                    count['dismatch'] += 1
+                elif re.match(next4_vid_pattern, file, re.I):
+                    print(f"[INFO] Match extra text {file}")
+                    do_rename(dirpath, file, db, 12)
                     count['dismatch'] += 1
                 else:
                     msg = f'[WARN] Video does not match: {file}'
