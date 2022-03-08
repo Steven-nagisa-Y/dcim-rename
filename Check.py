@@ -189,7 +189,7 @@ def main():
             match_img = re.match(img_pattern, file, re.I)
             match_vid = re.match(vid_pattern, file, re.I)
             if match_img:
-                good_img_pattern = r'((IMG|PANO|Screenshot)_\d{8}_\d{6}(_HDR)?(_\w+\.\w+\..+)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
+                good_img_pattern = r'((IMG|PANO|Screenshot|PXL)_\d{8}_\d{6}(_HDR)?(_\w+\.\w+\..+)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
                 next1_img_pattern = r'1(3|4|5|6)\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next2_img_pattern = r'IMG_\d{8}_\d{6}.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next3_img_pattern = r'IMG\d{14}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
