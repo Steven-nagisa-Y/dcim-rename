@@ -58,7 +58,7 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
     file_ext = file_ext.lower()
     if file_ext == 'jpeg':
         file_ext = 'jpg'
-    if i == 0:
+    if i == 0 and t != None:
         # 通过EXIF更改图片文件名
         from time import strptime, strftime
         file_time = strptime(t, "%Y:%m:%d %H:%M:%S")
@@ -72,8 +72,8 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         from time import localtime, strftime
         Photo = Query()
         time_stamp = int(file_name)
-        # 尝试60次重命名
-        for _ in range(60):
+        # 尝试10次重命名
+        for _ in range(10):
             time_local = localtime(time_stamp/1000)
             file_name_formatted = strftime("%Y%m%d_%H%M%S", time_local)
             new_name = "IMG_" + file_name_formatted + "." + file_ext
@@ -91,8 +91,8 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         Photo = Query()
         time_stamp = int(file_name.replace(
             'mmexport', '').replace('microMsg.', ''))
-        # 尝试60次重命名
-        for _ in range(60):
+        # 尝试10次重命名
+        for _ in range(10):
             time_local = localtime(time_stamp/1000)
             file_name_formatted = strftime("%Y%m%d_%H%M%S", time_local)
             new_name = "IMG_" + file_name_formatted + "." + file_ext
@@ -150,10 +150,6 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
 
 
 def quit(errMsg=None):
-    from time import sleep
-    for i in range(1, 4):
-        sleep(0.3 * i)
-        print(' ' * i + '-> ' + str(i))
     if not errMsg == None:
         print(
             f'[EXIT] Because of  {errMsg}  Program aborted. \nTry again later.')
@@ -189,8 +185,8 @@ def main():
             match_img = re.match(img_pattern, file, re.I)
             match_vid = re.match(vid_pattern, file, re.I)
             if match_img:
-                good_img_pattern = r'((IMG|PANO|Screenshot|PXL)_\d{8}_\d{6}(_HDR)?(_\w+\.\w+\..+)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))|(IMG_\d+\.(heic|HEIC))'
-                next1_img_pattern = r'1(3|4|5|6)\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
+                good_img_pattern = r'((IMG|PANO|Screenshot|PXL)_\d{8}_\d{6}(_HDR)?(_\w+\.\w+\..+)?\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG))'
+                next1_img_pattern = r'\d{13}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next2_img_pattern = r'IMG_\d{8}_\d{6}.+\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next3_img_pattern = r'IMG\d{14}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'
                 next4_img_pattern = r'(mmexport|microMsg\.)1[3-6]\d{11}\.(jpg|JPG|jpeg|JPEG|HEIC|heic|png|PNG)'

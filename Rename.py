@@ -10,9 +10,6 @@ DB_NAME = ''
 
 
 def quit(errMsg=None):
-    for i in range(1, 4):
-        sleep(0.3 * i)
-        print(' ' * i + '-> ' + str(i))
     if not errMsg == None:
         print(
             f'[EXIT] Because of  {errMsg}  Program aborted. \nTry again later.')
@@ -110,7 +107,7 @@ def main(db_name=None):
     print("1 => 查看所有数据")
     print("2 => 查看失败的数据")
     print("3 => 查看成功的数据")
-    print("4 => 立即重命名")
+    print("8 => 立即重命名")
     print("9 => 重命名恢复")
     print("0 => 退出")
     try:
@@ -118,7 +115,7 @@ def main(db_name=None):
     except KeyboardInterrupt:
         quit()
     except ValueError as err:
-        quit(f"Input value error: {err}")
+        quit(f"请输入数字，而不是 {err}")
     if select == 0:
         quit()
     if select == 1:
@@ -130,11 +127,14 @@ def main(db_name=None):
     if select == 3:
         display_good(db, DCIM.status)
         main()
-    if select == 4:
+    if select == 8:
         rename(db, DCIM.status)
         main()
     if select == 9:
         rename(db, DCIM.status, 1)
+        main()
+    else:
+        print('未知的操作，请重新输入')
         main()
 
 
