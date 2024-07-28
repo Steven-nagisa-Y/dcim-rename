@@ -22,7 +22,7 @@ def quit(errMsg=None):
 def get_db(db_name):
     if not db_name:
         db_name = 'photo_db'
-    db_name = f"./{db_name}.json"
+    db_name = f"./Database/{db_name}.json"
     if not os.path.exists(db_name):
         quit(f"Do not found DB File {db_name} Run Check.py first.")
     else:
@@ -33,31 +33,40 @@ def get_db(db_name):
 def display_all(db):
     paths = [i['path'] for i in db]
     paths = list(set(paths))
+    i = 0
     for path in paths:
         print(f"\n-+ {path}")
         for item in db:
             if item['path'] == path:
                 print(f" |-+ {item['new']}  <-  {item['original']}")
+                i += 1
+    print(f"\n[INFO] Total {i} items")
 
 
 def display_error(db, q):
     paths = [i['path'] for i in db.search(q == 'ERROR')]
     paths = list(set(paths))
+    i = 0
     for path in paths:
         print(f"\n-+ {path}")
         for item in db.search(q == 'ERROR'):
             if item['path'] == path:
                 print(f" |-+ {item['new']}")
+                i += 1
+    print(f"\n[INFO] Total {i} items")
 
 
 def display_good(db, q):
     paths = [i['path'] for i in db.search(q == 'GOOD')]
     paths = list(set(paths))
+    i = 0
     for path in paths:
         print(f"\n-+ {path}")
         for item in db.search(q == 'GOOD'):
             if item['path'] == path:
                 print(f" |-+ {item['new']}  <-  {item['original']}")
+                i += 1
+    print(f"\n[INFO] Total {i} items")
 
 
 def rename(db, q, i=0):
@@ -81,11 +90,9 @@ def rename(db, q, i=0):
                     quit("User type to quit")
                 except PermissionError as err:
                     print(f"     [ERROR] {path + item['original']} Access denied: {err}")
-                    sleep(1)
                     continue
                 except IOError as err:
                     print(f"     [ERROR] {path + item['original']} IO error: {err}")
-                    sleep(1)
                     continue
                 print("     [ OK ] 改名成功")
 
@@ -104,33 +111,31 @@ def main(db_name=None):
     db = get_db(DB_NAME)
     DCIM = Query()
     print("功能选择：")
-    print("1 => 查看所有数据")
-    print("2 => 查看失败的数据")
-    print("3 => 查看成功的数据")
-    print("8 => 立即重命名")
-    print("9 => 重命名恢复")
-    print("0 => 退出")
+    print("a => 查看所有数据")
+    print("f => 查看失败的数据")
+    print("s => 查看成功的数据")
+    print("r => 立即重命名")
+    print("b => 重命名恢复")
+    print("q => 退出")
     try:
-        select = int(input("> "))
+        select = input("> ")
     except KeyboardInterrupt:
         quit()
-    except ValueError as err:
-        quit(f"请输入数字，而不是 {err}")
-    if select == 0:
+    if select == 'q':
         quit()
-    if select == 1:
+    if select == 'a':
         display_all(db)
         main()
-    if select == 2:
+    if select == 'f':
         display_error(db, DCIM.status)
         main()
-    if select == 3:
+    if select == 's':
         display_good(db, DCIM.status)
         main()
-    if select == 8:
+    if select == 'r':
         rename(db, DCIM.status)
         main()
-    if select == 9:
+    if select == 'b':
         rename(db, DCIM.status, 1)
         main()
     else:
@@ -139,4 +144,8 @@ def main(db_name=None):
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    db_name = ''
+    if len(sys.argv) == 2:
+        db_name = sys.argv[1]
+    main(db_name)

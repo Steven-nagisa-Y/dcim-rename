@@ -1,2 +1,2 @@
 tinydb
-exifread
+exifread<3
