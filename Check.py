@@ -222,8 +222,16 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         # 修改傻逼微信QQ保存的图片文件名
         from time import localtime, strftime
         Photo = Query()
-        time_stamp = int(file_name.replace(
-            'mmexport', '').replace('microMsg.', ''))
+        try:
+            time_stamp = int(
+                file_name
+                    .replace('mmexport', '')
+                    .replace('microMsg.', '')
+                    .replace('Image_', '')
+            )
+        except ValueError:
+            print(f'{file_name} is not a valid file name.')
+            return "err"
         # 尝试60次重命名
         for _ in range(60):
             time_local = localtime(time_stamp/1000)
