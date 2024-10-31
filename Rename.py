@@ -116,6 +116,7 @@ def main(db_name=None):
     print("s => 查看成功的数据")
     print("r => 立即重命名")
     print("b => 重命名恢复")
+    print("c => 检查其他文件夹")
     print("q => 退出")
     try:
         select = input("> ")
@@ -138,6 +139,10 @@ def main(db_name=None):
     if select == 'b':
         rename(db, DCIM.status, 1)
         main()
+    if select == 'c':
+        import Main
+        Main.main()
+        return
     else:
         print('未知的操作，请重新输入')
         main()

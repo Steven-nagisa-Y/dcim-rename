@@ -12,17 +12,18 @@ DB_NAME = ''
 PATH = ''
 SAVED_DB = 'SAVED_PREFERENCE'
 
+
 def read_preference() -> Tuple[Optional[str], Optional[str]]:
     """
     读取用户偏好信息
-    
+
     Args:
         无参数
-    
+
     Returns:
         Tuple[Optional[str], Optional[str]]: 包含两个元素的元组，分别表示数据库名称和数据库路径。
             如果读取失败或用户未选择任何偏好信息，则返回两个None。
-    
+
     """
     db_file = f"./Database/{SAVED_DB}.json"
     if not os.path.exists(db_file):
@@ -56,7 +57,8 @@ def read_preference() -> Tuple[Optional[str], Optional[str]]:
             return read_preference()
         else:
             db.remove(Query().path == all_pref[select]['path'])
-            print(f'已删除{all_pref[select]["db_name"]}：{all_pref[select]["path"]}')
+            print(
+                f'已删除{all_pref[select]["db_name"]}：{all_pref[select]["path"]}')
             return read_preference()
     else:
         # 读取
@@ -71,17 +73,18 @@ def read_preference() -> Tuple[Optional[str], Optional[str]]:
         # 读取已有
         return all_pref[select]['db_name'], all_pref[select]['path']
 
+
 def write_preference(db_name, path) -> List:
     """
     将偏好信息写入数据库
-    
+
     Args:
         db_name (str): 数据库名称
         path (str): 数据库文件路径
-    
+
     Returns:
         list: 数据库中的所有记录
-    
+
     """
     db_file = f"./Database/{SAVED_DB}.json"
     if not os.path.exists(db_file):
@@ -97,16 +100,17 @@ def write_preference(db_name, path) -> List:
         db.insert({'db_name': db_name, 'path': path})
     return db.all()
 
+
 def select_path() -> str:
     """
     选择需要处理的目录
-    
+
     Args:
         无参数
-    
+
     Returns:
         str: 返回所选目录的路径字符串，若路径无效则返回字符串 "err"
-    
+
     """
     print("===========================================================")
     print("请输入需要处理的目录，例如：/DCIM/Camera ")
@@ -128,13 +132,13 @@ def select_path() -> str:
 def create_db(db_name=None) -> TinyDB:
     """
     创建一个新的TinyDB数据库并返回该数据库实例。
-    
+
     Args:
         db_name (str, optional): 数据库名称。如果未提供，则使用默认值 'photo_db'。
-    
+
     Returns:
         TinyDB: 创建的数据库实例。
-    
+
     """
     if not db_name:
         db_name = 'photo_db'
@@ -150,17 +154,17 @@ def create_db(db_name=None) -> TinyDB:
 def db_set(db, path, ori, new, status='GOOD') -> List[Dict]:
     """
     向数据库插入一条记录，并返回所有记录。
-    
+
     Args:
         db (object): 数据库对象。
         path (str): 文件路径。
         ori (str): 原始文件路径
         new (str): 新文件路径
         status (str, optional): 状态，默认为'GOOD'。
-    
+
     Returns:
         List[Dict]: 所有记录的列表，每个记录是一个字典，包含'path'、'original'、'new'和'status'四个键。
-    
+
     """
     ori = str(ori)
     new = str(new)
@@ -171,15 +175,15 @@ def db_set(db, path, ori, new, status='GOOD') -> List[Dict]:
 def db_get(db, query, value):
     """
     从数据库中获取与给定查询和值匹配的记录。
-    
+
     Args:
         db: 数据库对象，用于执行查询操作。
         query: 查询语句，用于匹配数据库中的记录。
         value: 查询值，用于匹配数据库中的记录。
-    
+
     Returns:
         返回与给定查询和值匹配的数据库记录列表。
-    
+
     """
     return db.search(query == value)
 
@@ -222,16 +226,12 @@ def do_rename(dirname, file, db, i, t=None, msg=None):
         # 修改傻逼微信QQ保存的图片文件名
         from time import localtime, strftime
         Photo = Query()
-        try:
-            time_stamp = int(
-                file_name
-                    .replace('mmexport', '')
-                    .replace('microMsg.', '')
-                    .replace('Image_', '')
-            )
-        except ValueError:
-            print(f'{file_name} is not a valid file name.')
-            return "err"
+        time_stamp = int(
+            file_name
+            .replace('mmexport', '')
+            .replace('microMsg.', '')
+            .replace('Image_', '')
+        )
         # 尝试60次重命名
         for _ in range(60):
             time_local = localtime(time_stamp/1000)
@@ -303,13 +303,13 @@ def quit(errMsg=None):
 def main() -> str:
     """
     对指定路径下的图片和视频进行重命名，并统计各类文件数量。
-    
+
     Args:
         无
-    
+
     Returns:
         str: 返回一个字符串，表示执行结果。
-    
+
     """
     pref = read_preference()
     if pref is not None:
@@ -385,11 +385,14 @@ def main() -> str:
                         exif_tags = exifread.process_file(f)
                         f.close()
                     except PermissionError:
-                        return "File access denied."
+                        return f"File {file} access denied."
                     except IOError:
-                        return "IO Error."
+                        return f"IO Error. {file}"
                     except KeyError as err:
                         return f"{file} File name error: {err}"
+                    except AttributeError as e:
+                        print(f"{file}: {e}")
+                        continue
                     if exif_tags == None or exif_tags == {} or not exif_tags.__contains__('EXIF DateTimeOriginal'):
                         msg = f'[WARN] File does not has EXIF: {file}'
                         do_rename(dirpath, file, db, -1, msg=msg)
@@ -460,7 +463,7 @@ if __name__ == '__main__':
                 write_preference(DB_NAME, PATH)
             import Rename
             Rename.main(DB_NAME)
-            
+
         else:
             quit()
     else:
