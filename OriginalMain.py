@@ -333,7 +333,7 @@ def main() -> str:
     count = {
         'all': 0,
         'good': 0,
-        'dismatch': 0,
+        'weird': 0,
         'video': 0
     }
     img_pattern = r'.+\.(jpg|jpeg|heic|png)'
@@ -357,29 +357,29 @@ def main() -> str:
                 elif re.match(next1_img_pattern, file):
                     print(f"[INFO] Match timestamp {file}")
                     do_rename(dirpath, file, db, 1)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next2_img_pattern, file):
                     print(f"[INFO] Match extra text {file}")
                     do_rename(dirpath, file, db, 11)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next3_img_pattern, file):
                     print(f"[INFO] Match missing underline {file}")
                     do_rename(dirpath, file, db, 10)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next4_img_pattern, file):
                     print(f"[INFO] Match WX timestamp {file}")
                     do_rename(dirpath, file, db, 2)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next5_img_pattern, file):
                     print(f"[INFO] Match Head missing {file}")
                     do_rename(dirpath, file, db, 3)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next6_img_pattern, file):
                     print(f"[INFO] Match New Format {file}")
                     do_rename(dirpath, file, db, 4)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 else:
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                     try:
                         f = open(dirpath + os.path.sep + file, 'rb')
                         exif_tags = exifread.process_file(f)
@@ -420,22 +420,22 @@ def main() -> str:
                 elif re.match(next1_vid_pattern, file):
                     print(f"[INFO] Match timestamp {file}")
                     do_rename(dirpath, file, db, 10)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next2_vid_pattern, file):
                     print(f"[INFO] Match extra text {file}")
                     do_rename(dirpath, file, db, 11)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next3_vid_pattern, file):
                     print(f"[INFO] Match WX timestamp {file}")
                     do_rename(dirpath, file, db, 2)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 elif re.match(next4_vid_pattern, file, re.I):
                     print(f"[INFO] Match extra text {file}")
                     do_rename(dirpath, file, db, 12)
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                 else:
                     msg = f'[WARN] Video does not match: {file}'
-                    count['dismatch'] += 1
+                    count['weird'] += 1
                     do_rename(dirpath, file, db, -1, msg=msg)
                     print(msg)
             else:

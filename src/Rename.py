@@ -4,6 +4,7 @@ import os
 from sys import exit
 from time import sleep
 from tinydb import TinyDB, Query
+from pattern_manager import PatternManager
 
 
 DB_NAME = ''
@@ -68,89 +69,123 @@ def display_good(db, q):
                 i += 1
     print(f"\n[INFO] Total {i} items")
 
+def display_todo(db, q):
+    paths = [i['path'] for i in db.search(q == 'NEXT')]
+    paths = list(set(paths))
+    i = 0
+    for path in paths:
+        print(f"\n-+ {path}")
+        for item in db.search(q == 'NEXT'):
+            if item['path'] == path:
+                print(f" |-+ {item['new']}  <-  {item['original']}")
+                i += 1
+    print(f"\n[INFO] Total {i} items")
+
 
 def rename(db, q, i=0):
-    rename_list = db.search(q == 'GOOD')
+    """
+    执行重命名操作
+    
+    Args:
+        db: TinyDB 数据库实例
+        q: Query 对象，用于数据库查询
+        i: 重命名方向，0 表示正向重命名，1 表示恢复原名
+    """
+    rename_list = db.search(q == 'NEXT')
     paths = [i['path'] for i in rename_list]
     paths = list(set(paths))
+    
     for path in paths:
         print(f"\n-+ {path}")
         for item in rename_list:
             if item['path'] == path:
                 try:
+                    old_path = os.path.join(path, item['original'] if i == 0 else item['new'])
+                    new_path = os.path.join(path, item['new'] if i == 0 else item['original'])
+                    
                     if i == 0:
                         print(f" |-+ Rename to {item['new']}  <-  {item['original']}")
-                        os.rename(
-                            path + os.path.sep + item['original'], path + os.path.sep + item['new'])
                     else:
                         print(f" |-+ Rename to {item['original']}  <-  {item['new']}")
-                        os.rename(
-                            path + os.path.sep + item['new'], path + os.path.sep + item['original'])
+                    
+                    os.rename(old_path, new_path)
+                    if os.path.exists(new_path):
+                        print("     [ OK ] 改名成功")
+                    else:
+                        print("     [ERROR] 改名失败")
+                    
                 except KeyboardInterrupt:
                     quit("User type to quit")
                 except PermissionError as err:
-                    print(f"     [ERROR] {path + item['original']} Access denied: {err}")
+                    print(f"     [ERROR] {old_path} Access denied: {err}")
                     continue
                 except IOError as err:
-                    print(f"     [ERROR] {path + item['original']} IO error: {err}")
+                    print(f"     [ERROR] {old_path} IO error: {err}")
                     continue
-                print("     [ OK ] 改名成功")
 
 
 def main(db_name=None):
+    """
+    主函数，处理命令行参数并执行相应的重命名操作
+    
+    Args:
+        db_name: 可选的数据库名称
+    """
     global DB_NAME
-    print("===========================================================")
-    if db_name:
-        DB_NAME = db_name
+    DB_NAME = db_name
+    
     if not DB_NAME:
-        print("输入数据库文件名")
+        print('输入数据库文件名')
         try:
             DB_NAME = input('(Default) photo_db > ')
         except KeyboardInterrupt:
-            quit("Input Database name error")
+            quit("User type exit")
+        except EOFError:
+            quit("User type exit")
+    
     db = get_db(DB_NAME)
-    DCIM = Query()
-    print("功能选择：")
-    print("a => 查看所有数据")
-    print("f => 查看失败的数据")
-    print("s => 查看成功的数据")
-    print("r => 立即重命名")
-    print("b => 重命名恢复")
-    print("c => 检查其他文件夹")
-    print("q => 退出")
+    Photo = Query()
+    
+    print('\n选择操作：')
+    print('all => 显示所有文件')
+    print('err => 显示错误文件')
+    print('good => 显示正确文件')
+    print('next => 显示需要重命名的文件')
+    print('rename => 执行重命名')
+    print('restore => 恢复原名')
+    print('q => 退出')
+    
     try:
-        select = input("> ")
+        select = input('> ')
     except KeyboardInterrupt:
-        quit()
-    if select == 'q':
-        quit()
-    if select == 'a':
+        quit("User type exit")
+    except EOFError:
+        quit("User type exit")
+        
+    if select == 'all':
         display_all(db)
-        main()
-    if select == 'f':
-        display_error(db, DCIM.status)
-        main()
-    if select == 's':
-        display_good(db, DCIM.status)
-        main()
-    if select == 'r':
-        rename(db, DCIM.status)
-        main()
-    if select == 'b':
-        rename(db, DCIM.status, 1)
-        main()
-    if select == 'c':
-        import Main
-        Main.main()
-        return
+    elif select == 'err':
+        display_error(db, Photo.status)
+    elif select == 'good':
+        display_good(db, Photo.status)
+    elif select == 'next':
+        display_todo(db, Photo.status)
+    elif select == 'rename':
+        rename(db, Photo.status, 0)
+    elif select == 'restore':
+        rename(db, Photo.status, 1)
+    elif select == 'q':
+        quit()
     else:
-        print('未知的操作，请重新输入')
-        main()
+        print('输入错误！')
+        return
+    
+    return main(DB_NAME)
 
 
 if __name__ == '__main__':
     import sys
     db_name = ''
-    if len(sys.argv) == 2:
+    if len(sys.argv) > 1:
         db_name = sys.argv[1]
     main(db_name)
